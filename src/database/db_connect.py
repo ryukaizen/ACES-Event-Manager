@@ -19,13 +19,13 @@ while True:
             password=DB_PASS,
             database=DB_NAME
         )
-        break
     except mysql.connector.Error as err:
         print(err)
         print("[*] Trying to connect again...\n")
         time.sleep(5)
         continue
-    finally:
+    else:
         print("[*] MySQL connection established successfully!\n--- Host: {} | Database: {}\n".format(HOST, DB_NAME))    
+        break
     
 cursor = cnx.cursor()

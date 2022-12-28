@@ -451,8 +451,8 @@ class AEM(customtkinter.CTk):
                                 self.role)
                                 )
                         cnx.commit()  
-                except ValueError as error:
-                    raise ValueError("Error", str(error))  
+                except Exception as error:
+                    raise Exception("Error", str(error))  
                 else:
                     if not False:
                         messagebox.showinfo("Registration Successful", f"Registration Successful!\n\nWelcome,{self.username}.\nKindly login to proceed further.")

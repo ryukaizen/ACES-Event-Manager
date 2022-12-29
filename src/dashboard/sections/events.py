@@ -48,9 +48,9 @@ class EventSection:
                         )
         update_event_button.grid(row=2, column=1, sticky="n", padx=35, pady=10)
         
-        remove_event_button = customtkinter.CTkButton(
+        cancel_event_button = customtkinter.CTkButton(
                         frame,
-                        text='Remove Event',
+                        text='Cancel Event',
                         font=customtkinter.CTkFont(size=18), 
                         fg_color="#0065D9",
                         hover_color="#FF0000",  
@@ -59,8 +59,9 @@ class EventSection:
                         border_width=3,
                         border_color=("#EDF6FA", "#1B1B24"),
                         corner_radius=15,
+                        command= lambda: CancelEvent(frame, treeview)
                         )
-        remove_event_button.grid(row=3, column=1, sticky="s", padx=35, pady=10)
+        cancel_event_button.grid(row=3, column=1, sticky="s", padx=35, pady=10)
         
         event_history_button = customtkinter.CTkButton(
                         frame,
@@ -401,35 +402,35 @@ class NewEvent:
                             text="Event Name: " + self.event_name,
                             font=customtkinter.CTkFont(size=16),
                             )
-            event_name_label.place(x=250, y=60, anchor="center")
+            event_name_label.place(x=150, y=60, anchor="nw")
             
             event_description_label = customtkinter.CTkLabel(
                             self.dialogue_window,
                             text="Event Description: " + f"{self.event_description[:15]}...",
                             font=customtkinter.CTkFont(size=16),
                             )
-            event_description_label.place(x=250, y=100, anchor="center")
+            event_description_label.place(x=150, y=100, anchor="nw")
             
             event_date_label = customtkinter.CTkLabel(
                             self.dialogue_window,
                             text="Event Date: " + self.event_date,
                             font=customtkinter.CTkFont(size=16),
                             )
-            event_date_label.place(x=250, y=140, anchor="center")
+            event_date_label.place(x=150, y=140, anchor="nw")
             
             event_time_label = customtkinter.CTkLabel(
                             self.dialogue_window,
                             text="Event Time: " + self.event_time,
                             font=customtkinter.CTkFont(size=16),
                             )
-            event_time_label.place(x=250, y=180, anchor="center")
+            event_time_label.place(x=150, y=180, anchor="nw")
             
             event_venue_label = customtkinter.CTkLabel(
                             self.dialogue_window,
                             text="Event Venue: " + self.event_venue,
                             font=customtkinter.CTkFont(size=16),
                             )
-            event_venue_label.place(x=250, y=220, anchor="center")
+            event_venue_label.place(x=150, y=220, anchor="nw")
             
             yes_button = customtkinter.CTkButton(
                             self.dialogue_window,
@@ -730,7 +731,7 @@ class UpdateEvent:
         else:
             self.dialogue_window = customtkinter.CTkToplevel(fg_color=("#EDF6FA", "#1B1B24"))
             self.dialogue_window.geometry("500x400")
-            self.dialogue_window.title("Proceed to add event?")
+            self.dialogue_window.title("Proceed to update event?")
             self.dialogue_window.resizable(False, False)
             
             question_label = customtkinter.CTkLabel(
@@ -745,35 +746,35 @@ class UpdateEvent:
                             text="Event Name: " + self.event_name,
                             font=customtkinter.CTkFont(size=16),
                             )
-            event_name_label.place(x=250, y=60, anchor="center")
+            event_name_label.place(x=150, y=60, anchor="nw")
             
             event_description_label = customtkinter.CTkLabel(
                             self.dialogue_window,
                             text="Event Description: " + f"{self.event_description[:15]}...",
                             font=customtkinter.CTkFont(size=16),
                             )
-            event_description_label.place(x=250, y=100, anchor="center")
+            event_description_label.place(x=150, y=100, anchor="nw")
             
             event_date_label = customtkinter.CTkLabel(
                             self.dialogue_window,
                             text="Event Date: " + self.event_date,
                             font=customtkinter.CTkFont(size=16),
                             )
-            event_date_label.place(x=250, y=140, anchor="center")
+            event_date_label.place(x=150, y=140, anchor="nw")
             
             event_time_label = customtkinter.CTkLabel(
                             self.dialogue_window,
                             text="Event Time: " + self.event_time,
                             font=customtkinter.CTkFont(size=16),
                             )
-            event_time_label.place(x=250, y=180, anchor="center")
+            event_time_label.place(x=150, y=180, anchor="nw")
             
             event_venue_label = customtkinter.CTkLabel(
                             self.dialogue_window,
                             text="Event Venue: " + self.event_venue,
                             font=customtkinter.CTkFont(size=16),
                             )
-            event_venue_label.place(x=250, y=220, anchor="center")
+            event_venue_label.place(x=150, y=220, anchor="nw")
             
             yes_button = customtkinter.CTkButton(
                             self.dialogue_window,
@@ -829,3 +830,105 @@ class UpdateEvent:
         else:
             self.dialogue_window.destroy()
             EventSection(self.the_frame)
+
+class CancelEvent:
+    def __init__(self, frame, treeview):
+        self.the_frame = frame
+        try:
+            selected_item = treeview.selection()[0]
+            self.event_name = treeview.item(selected_item)['values'][1]
+            self.event_description = treeview.item(selected_item)['values'][2]
+            self.event_date = treeview.item(selected_item)['values'][3]
+            self.event_time = treeview.item(selected_item)['values'][4]
+            self.event_venue = treeview.item(selected_item)['values'][5]
+            self.event_id = treeview.item(selected_item)['values'][6]
+        
+        except IndexError:
+            messagebox.showerror("Error", "Please select an event to cancel.")
+        else:
+            self.dialogue_window = customtkinter.CTkToplevel(fg_color=("#EDF6FA", "#1B1B24"))
+            self.dialogue_window.geometry("500x400")
+            self.dialogue_window.title("Cancel this event?")
+            self.dialogue_window.resizable(False, False)
+            
+            question_label = customtkinter.CTkLabel(
+                            self.dialogue_window,
+                            text="Are you sure you want to cancel this event?",
+                            font=customtkinter.CTkFont(size=16),
+                            )
+            question_label.place(x=250, y=20, anchor="center")
+            
+            event_name_label = customtkinter.CTkLabel(
+                            self.dialogue_window,
+                            text="Event Name: " + self.event_name,
+                            font=customtkinter.CTkFont(size=16),
+                            )
+            event_name_label.place(x=150, y=60, anchor="nw")
+            
+            event_description_label = customtkinter.CTkLabel(
+                            self.dialogue_window,
+                            text="Event Description: " + f"{self.event_description[:15]}...",
+                            font=customtkinter.CTkFont(size=16),
+                            )
+            event_description_label.place(x=150, y=100, anchor="nw")
+            
+            event_date_label = customtkinter.CTkLabel(
+                            self.dialogue_window,
+                            text="Event Date: " + self.event_date,
+                            font=customtkinter.CTkFont(size=16),
+                            )
+            event_date_label.place(x=150, y=140, anchor="nw")
+            
+            event_time_label = customtkinter.CTkLabel(
+                            self.dialogue_window,
+                            text="Event Time: " + self.event_time,
+                            font=customtkinter.CTkFont(size=16),
+                            )
+            event_time_label.place(x=150, y=180, anchor="nw")
+            
+            event_venue_label = customtkinter.CTkLabel(
+                            self.dialogue_window,
+                            text="Event Venue: " + self.event_venue,
+                            font=customtkinter.CTkFont(size=16),
+                            )
+            event_venue_label.place(x=150, y=220, anchor="nw")
+            
+            yes_button = customtkinter.CTkButton(
+                            self.dialogue_window,
+                            text="Yes (Cancel Event)",
+                            width=140,
+                            height=60,
+                            font=customtkinter.CTkFont(size=16),
+                            fg_color="#FF0000",
+                            hover_color="#7D0000",
+                            border_width=2,
+                            border_color=("#1B1B24","#EDF6FA"),
+                            corner_radius=15,
+                            command=self.delete_event_from_database
+                            )
+            yes_button.place(x=145, y=330, anchor="center")
+            
+            no_button = customtkinter.CTkButton(
+                            self.dialogue_window,
+                            text="No (Go Back)",
+                            width=140,
+                            height=60,
+                            font=customtkinter.CTkFont(size=16),
+                            fg_color="#0065D9",
+                            border_width=2,
+                            border_color=("#1B1B24","#EDF6FA"),
+                            corner_radius=15,
+                            command=self.dialogue_window.destroy
+                            )
+            no_button.place(x=370, y=330, anchor="center")
+    
+    def delete_event_from_database(self):
+        try:
+            cursor.execute("""DELETE FROM events WHERE event_id = "{}";""".format(self.event_id))
+            cnx.commit()                         
+        except Exception as error:
+            raise Exception("Error", str(error))  
+        else:
+            self.dialogue_window.destroy()
+            EventSection(self.the_frame)
+      

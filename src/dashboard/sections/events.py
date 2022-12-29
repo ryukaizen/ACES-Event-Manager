@@ -778,7 +778,7 @@ class UpdateEvent:
             
             yes_button = customtkinter.CTkButton(
                             self.dialogue_window,
-                            text="Yes (Add Event)",
+                            text="Yes (Update Event)",
                             width=140,
                             height=60,
                             font=customtkinter.CTkFont(size=16),

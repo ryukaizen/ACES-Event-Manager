@@ -1,11 +1,15 @@
 # "IT JUST WORKS"
 
 import customtkinter
+import csv
+import dicttoxml
 import mysql.connector
+import openpyxl
 import time
 import uuid
+import xlwt
 
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
 from tkcalendar import Calendar
 from datetime import datetime, timedelta
 from ...database.db_connect import cursor, cnx
@@ -88,6 +92,7 @@ class EventSection:
                         border_width=3,
                         border_color=("#EDF6FA", "#1B1B24"),
                         corner_radius=15,
+                        command= lambda: ExportData(frame)
                         )
         export_data_button.grid(row=5, column=1, sticky="s", padx=35, pady=10)
         
@@ -931,4 +936,126 @@ class CancelEvent:
         else:
             self.dialogue_window.destroy()
             EventSection(self.the_frame)
-      
+
+class ExportData:
+    def __init__(self, frame):
+        self.the_frame = frame
+        self.dialogue_window = customtkinter.CTkToplevel(fg_color=("#EDF6FA", "#1B1B24"))
+        self.dialogue_window.geometry("500x400")
+        self.dialogue_window.title("Export Data")
+        self.dialogue_window.resizable(False, False)
+        
+        question_label = customtkinter.CTkLabel(
+                        self.dialogue_window,
+                        text="Select the format in which you want to export the data.",
+                        font=customtkinter.CTkFont(size=16),
+                        )
+        question_label.place(x=250, y=20, anchor="center")
+        
+        csv_button = customtkinter.CTkButton(
+                        self.dialogue_window,
+                        text=".CSV (Comma Separated Values)",
+                        width=200,
+                        height=60,
+                        font=customtkinter.CTkFont(size=16),
+                        fg_color="#0065D9",
+                        border_width=2,
+                        border_color=("#1B1B24","#EDF6FA"),
+                        corner_radius=15,
+                        command=self.export_data_csv(self.dialogue_window)
+                        )
+        csv_button.place(x=135, y=60, anchor="center")
+        
+        xlsx_button = customtkinter.CTkButton(
+                        self.dialogue_window,
+                        text=".XLSX (Excel Spreadsheet)",
+                        width=140,
+                        height=60,
+                        font=customtkinter.CTkFont(size=16),
+                        fg_color="#FF0000",
+                        hover_color="#7D0000",
+                        border_width=2,
+                        border_color=("#1B1B24","#EDF6FA"),
+                        corner_radius=15,
+                        command=self.dialogue_window.destroy(self.dialogue_window)
+                        )
+        xlsx_button.place(x=370, y=330, anchor="center")
+        
+        txt_button = customtkinter.CTkButton(
+                        self.dialogue_window,
+                        text=".TXT (Plain Text)",
+                        width=140,
+                        height=60,
+                        font=customtkinter.CTkFont(size=16),
+                        fg_color="#FF0000",
+                        hover_color="#7D0000",
+                        border_width=2,
+                        border_color=("#1B1B24","#EDF6FA"),
+                        corner_radius=15,
+                        command=self.dialogue_window.destroy(self.dialogue_window)
+                        )
+        txt_button.place(x=370, y=330, anchor="center")                        
+    
+    def export_data_csv(self, window):
+        try:
+            cursor.execute("""SELECT * FROM events;""")
+            data = cursor.fetchall()
+            filepath = filedialog.asksaveasfilename(defaultextension='.csv', filetypes=[('CSV files', '*.csv'), ('All files', '*')])
+            with open(filepath, "w", newline="") as file:
+                writer = csv.writer(file)
+                writer.writerow(["Event ID", "Event Name", "Event Description", "Event Date", "Event Time", "Event Venue"])
+                writer.writerows(data)
+        except Exception as error:
+            raise Exception("Error", str(error))  
+        else:
+            self.dialogue_window.destroy()
+            EventSection(self.the_frame)
+            
+    
+            
+    # def export_data_xlsx(self, window):
+    #     try:
+    #         cursor.execute("""SELECT * FROM events;""")
+    #         data = cursor.fetchall()
+    #         filepath = filedialog.asksaveasfilename(defaultextension='.xlsx', filetypes=[('Excel files', '*.xlsx'), ('All files', '*')])
+    #         if filepath:
+    #             workbook = openpyxl.Workbook()
+    #             sheet = workbook.active
+    #             for row in data:
+    #                 sheet.append(row)
+    #             workbook.save(filepath)
+    #     except Exception as error:
+    #         raise Exception("Error", str(error))
+    #     else:
+    #         self.dialogue_window.destroy()
+    #         EventSection(self.the_frame)
+            
+    # def export_data_txt(self, window):
+    #     try:
+    #         cursor.execute("""SELECT * FROM events;""")
+    #         data = cursor.fetchall()
+    #         filepath = filedialog.asksaveasfilename(defaultextension='.txt', filetypes=[('Text files', '*.txt'), ('All files', '*')])
+    #         if filepath:
+    #             with open(filepath, "w") as file:
+    #                 for row in data:
+    #                     file.write(row)
+    #     except Exception as error:
+    #         raise Exception("Error", str(error))
+    #     else:
+    #         self.dialogue_window.destroy()
+    #         EventSection(self.the_frame)
+            
+    # def export_data_pdf(self, window):
+    #     try:
+    #         cursor.execute("""SELECT * FROM events;""")
+    #         data = cursor.fetchall()
+    #         filepath = filedialog.asksaveasfilename(defaultextension='.pdf', filetypes=[('PDF files', '*.pdf'), ('All files', '*')])
+    #         if filepath:
+    #             with open(filepath, "w") as file:
+    #                 pdf = dicttoxml(data)
+    #                 file.write(pdf)
+    #     except Exception as error:
+    #         raise Exception("Error", str(error))
+    #     else:
+    #         self.dialogue_window.destroy()
+    #         EventSection(self.the_frame)

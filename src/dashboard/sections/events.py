@@ -93,6 +93,7 @@ class EventSection:
                         border_width=3,
                         border_color=("#EDF6FA", "#1B1B24"),
                         corner_radius=15,
+                        command= lambda: EventHistory(frame)
                         )
         event_history_button.grid(row=5, column=1, sticky="s", padx=35, pady=5)
         
@@ -507,11 +508,6 @@ class MarkCompleted:
         self.the_frame = frame
         try:
             selected_item = treeview.selection()[0]
-            self.event_name = treeview.item(selected_item)['values'][1]
-            self.event_description = treeview.item(selected_item)['values'][2]
-            self.event_date = treeview.item(selected_item)['values'][3]
-            self.event_time = treeview.item(selected_item)['values'][4]
-            self.event_venue = treeview.item(selected_item)['values'][5]
             self.event_id = treeview.item(selected_item)['values'][6]
         except IndexError:
             messagebox.showerror("Error", "Please select an event to mark it as completed!")
@@ -529,6 +525,7 @@ class MarkCompleted:
         else:
             messagebox.showinfo("Success", "Event marked as completed!\n\nCheck Event Histroy to list all the completed events!")
             EventSection(self.the_frame)
+            
 class UpdateEvent:
     def __init__(self, frame, treeview):
         self.the_frame = frame
@@ -978,6 +975,232 @@ class CancelEvent:
         else:
             self.dialogue_window.destroy()
             EventSection(self.the_frame)
+
+class EventHistory:
+    def __init__(self, frame):
+        self.the_frame = frame
+        for widget in frame.winfo_children():
+            widget.destroy()
+        self.event_history(frame)
+    
+    def event_history(self, frame):
+        
+        go_back_button = customtkinter.CTkButton(
+                        frame,
+                        text="Go Back",
+                        font=customtkinter.CTkFont(size=16),
+                        fg_color="Green",
+                        hover_color="#2AAAFA",
+                        border_width=3,
+                        border_color=("#EDF6FA", "#1B1B24"),
+                        corner_radius=15,
+                        command=lambda: EventSection(frame)
+                        )
+        go_back_button.grid(row=1, column=1, sticky="n", padx=35, pady=15)
+        
+        event_history_label = customtkinter.CTkLabel(
+                        frame,
+                        text='Completed Events',
+                        font=customtkinter.CTkFont(size=24, weight="bold"),
+                        )
+        event_history_label.grid(row=1, column=2, columnspan=2, sticky="n", padx=35, pady=15)
+ 
+        unmark_complete_button = customtkinter.CTkButton(
+                        frame,
+                        text='Unmark Complete',
+                        font=customtkinter.CTkFont(size=18), 
+                        fg_color="#0065D9",
+                        hover_color="#19941B",  
+                        width=180, 
+                        height=65, 
+                        border_width=3,
+                        border_color=("#EDF6FA", "#1B1B24"),
+                        corner_radius=15,
+                        command= self.unmark_complete
+                        )
+        unmark_complete_button.grid(row=2, column=1, sticky="n", padx=35, pady=5)
+        
+        export_data_button = customtkinter.CTkButton(
+                        frame,
+                        text='Export Data',
+                        font=customtkinter.CTkFont(size=18), 
+                        fg_color="#0065D9",
+                        hover_color="#19941B",  
+                        width=180, 
+                        height=65, 
+                        border_width=3,
+                        border_color=("#EDF6FA", "#1B1B24"),
+                        corner_radius=15,
+                        command=self.export_data
+                        )
+        export_data_button.grid(row=3, column=1, sticky="n", padx=35, pady=5)
+        
+        ##################################### Treeview #####################################
+        
+        style = ttk.Style()    
+        style.theme_use("default")  
+        style.configure("Treeview",
+                        font=customtkinter.CTkFont(size=15),
+                        background="#2A2D2E",
+                        foreground="#EDF6FA",
+                        rowheight=25,
+                        fieldbackground="#343638",
+                        bordercolor="#343638",
+                        borderwidth=1)
+        style.map('Treeview', background=[('selected', '#22559b')])
+    
+        style.configure("Treeview.Heading",
+                        font=customtkinter.CTkFont(size=18, weight="bold"),
+                        background="#3D3D3D",
+                        foreground="#EDF6FA",
+                        relief="flat")
+        style.map("Treeview.Heading", background=[('active', '#0065D9')])
+        
+        self.treeview = ttk.Treeview(frame)
+        self.treeview["columns"] = ("sr", "event_name", "event_description", "event_date", "event_time", "event_venue", "event_id",)
+        self.treeview["show"] = "headings"
+        
+        self.treeview.column("sr", width=50, anchor="center")
+        self.treeview.column("event_name", width=200, anchor="center")
+        self.treeview.column("event_description", width=300, anchor="center")
+        self.treeview.column("event_date", width=80, anchor="center")
+        self.treeview.column("event_time", width=80, anchor="center")
+        self.treeview.column("event_venue", width=150, anchor="center")
+        self.treeview.column("event_id", width=200, anchor="center")
+        
+        self.treeview.heading("sr", text="Sr. No")
+        self.treeview.heading("event_name", text="Title")
+        self.treeview.heading("event_description", text="Description")
+        self.treeview.heading("event_date", text="Date")
+        self.treeview.heading("event_time", text="Time")
+        self.treeview.heading("event_venue", text="Location")
+        self.treeview.heading("event_id", text="Event ID")
+
+        self.treeview.grid(row=2, column=2, rowspan=7, sticky="nsew", padx=10, pady=10)
+        
+        query = "SELECT event_name, event_description, event_date, event_time, event_venue, event_id FROM completed_events"
+        while True:
+            try:
+                cursor.execute(query)
+                results = cursor.fetchall()
+                break
+            except mysql.connector.Error as err:
+                print(f"[x] Error occured while executing query: {query}\n{err}")
+                print("[*] Trying to load the treeview again...\n")
+                print("--- While we are at it, check your database connection...\n")
+                time.sleep(5)
+                continue
+            finally:
+                for row in self.treeview.get_children():
+                    self.treeview.delete(row)
+                i=0
+                for row in results:
+                    i=i+1
+                    self.treeview.insert("", "end", text="", values=(i, row[0], row[1], row[2], row[3], row[4], row[5]))
+ 
+    def unmark_complete(self):
+        try:
+            selected_item = self.treeview.selection()[0]
+            event_id = self.treeview.item(selected_item, "values")[6]
+        except IndexError:
+            messagebox.showerror("Error", "Please select an event to unmark it as complete.")
+            return
+        else:
+            try:
+                cursor.execute(f"""INSERT INTO events (event_name, event_description, event_date, event_time, event_venue, event_id) SELECT event_name, event_description, event_date, event_time, event_venue, event_id FROM completed_events WHERE event_id = "{event_id}";""")
+                cursor.execute(f"DELETE FROM completed_events WHERE event_id = '{event_id}'")
+                cnx.commit()  
+            except Exception as err:
+                raise Exception("Error", str(err))
+            else:
+                messagebox.showinfo("Success", "Event unmarked as complete.")
+                EventHistory(self.the_frame)
+    
+    def export_data(self):
+        self.dialogue_window = customtkinter.CTkToplevel(fg_color=("#EDF6FA", "#1B1B24"))
+        self.dialogue_window.geometry("500x400")
+        self.dialogue_window.title("Export Data")
+        self.dialogue_window.resizable(False, False)
+        
+        question_label = customtkinter.CTkLabel(
+                        self.dialogue_window,
+                        text="Select the format in which you want to export the data.",
+                        font=customtkinter.CTkFont(size=16),
+                        )
+        question_label.place(x=250, y=80, anchor="center")
+        
+        csv_button = customtkinter.CTkButton(
+                        self.dialogue_window,
+                        text=".CSV (Comma Separated Values)",
+                        width=200,
+                        height=60,
+                        font=customtkinter.CTkFont(size=16),
+                        fg_color="#0065D9",
+                        hover_color="#19941B", 
+                        border_width=2,
+                        border_color=("#1B1B24","#EDF6FA"),
+                        corner_radius=15,
+                        command=self.export_data_csv
+                        )
+        csv_button.place(x=250, y=160, anchor="center")
+        
+        xlsx_button = customtkinter.CTkButton(
+                        self.dialogue_window,
+                        text=".XLSX (Excel Spreadsheet)",
+                        width=200,
+                        height=60,
+                        font=customtkinter.CTkFont(size=16),
+                        fg_color="#0065D9",
+                        hover_color="#19941B",  
+                        border_width=2,
+                        border_color=("#1B1B24","#EDF6FA"),
+                        corner_radius=15,
+                        command=self.export_data_xlsx
+                        )
+        xlsx_button.place(x=250, y=240, anchor="center")   
+    
+    def export_data_csv(self):
+        self.dialogue_window.destroy()
+        filepath = filedialog.asksaveasfilename(defaultextension='.csv', filetypes=[('CSV files', '*.csv'), ('All files', '*')]) 
+        try:   
+            cursor.execute("""SELECT event_name, event_description, event_date, event_time, event_venue FROM completed_events;""")
+            data = cursor.fetchall()
+        except Exception as error:
+            raise Exception("Error", error)  
+        else:
+            if filepath:
+                with open(filepath, "w", newline="") as file:
+                    writer = csv.writer(file)
+                    writer.writerow(["Sr. No.", "Event Name", "Event Description", "Event Date", "Event Time", "Event Venue"])
+                    i = 0
+                    for row in data:
+                        i = i + 1
+                        data = [i, row[0], row[1], row[2], row[3], row[4]]
+                        writer.writerow(data)      
+        finally:        
+            EventHistory(self.the_frame)  
+            
+    def export_data_xlsx(self):
+        self.dialogue_window.destroy()
+        filepath = filedialog.asksaveasfilename(defaultextension='.xlsx', filetypes=[('Excel files', '*.xlsx'), ('All files', '*')])
+        try:
+            cursor.execute("""SELECT event_name, event_description, event_date, event_time, event_venue FROM completed_events;""")
+            data = cursor.fetchall()
+        except Exception as error:
+            raise Exception("Error", error)
+        else:
+            if filepath:
+                workbook = openpyxl.Workbook()
+                sheet = workbook.active
+                sheet.append(["Sr. No.", "Event Name", "Event Description", "Event Date", "Event Time", "Event Venue"])
+                i = 0
+                for row in data:
+                    i= i + 1
+                    newrow = [i, row[0], row[1], row[2], row[3], row[4]]
+                    sheet.append(newrow)
+                workbook.save(filepath)
+        finally:        
+            EventHistory(self.the_frame)
 
 class ExportData:
     def __init__(self, frame):

@@ -527,7 +527,7 @@ class MarkCompleted:
         except Exception as error:
             raise Exception("Error", str(error))
         else:
-            messagebox.showinfo("Success", "Event marked as completed!")
+            messagebox.showinfo("Success", "Event marked as completed!\n\n Check Event Histroy to list all the completed events!")
             EventSection(self.the_frame)
 class UpdateEvent:
     def __init__(self, frame, treeview):

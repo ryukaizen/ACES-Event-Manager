@@ -1,4 +1,4 @@
-# "IT JUST WORKS"
+# "IT JUST WORKS, DON'T ASK WHY I DID THAT - Akash Dalvi"
 
 import customtkinter
 import csv

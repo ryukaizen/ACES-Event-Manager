@@ -1,9 +1,8 @@
 import customtkinter
 
 from PIL import Image
-from ..database.db_connect import cursor, cnx
 from .sections.events import EventSection
-from .sections.venue import VenueSection
+from .sections.broadcast import BroadcastSection
 
 customtkinter.set_appearance_mode("light") 
 customtkinter.set_default_color_theme("dark-blue")
@@ -59,7 +58,7 @@ class AdminDashboard:
                             text="ACES Event Manager", 
                             font=customtkinter.CTkFont(size=22, weight="bold")
                             )
-        dashboard_label1.place(relx=0.5, rely=0.65, anchor="s")
+        dashboard_label1.place(relx=0.5, rely=0.85, anchor="s")
         
         self.section_segment_button = customtkinter.CTkSegmentedButton(
                                 window,
@@ -107,8 +106,8 @@ class AdminDashboard:
     
         if value == "Events":
             EventSection(self.body_frame)
-        elif value == "Venue":
-            VenueSection(self.body_frame)
+        elif value == "Broadcast":
+            BroadcastSection(self.body_frame)
         # elif value == "Calendar":
         #     self.calendar_section()
         # elif value == "Committee":

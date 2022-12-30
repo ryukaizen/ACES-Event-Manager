@@ -2,12 +2,10 @@
 
 import customtkinter
 import csv
-import dicttoxml
 import mysql.connector
 import openpyxl
 import time
 import uuid
-import xlwt
 
 from tkinter import ttk, messagebox, filedialog
 from tkcalendar import Calendar

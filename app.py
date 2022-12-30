@@ -158,7 +158,9 @@ class AEM(customtkinter.CTk):
                         width=120, 
                         height=42, 
                         corner_radius=10, 
-                        command=lambda: [widget.destroy() for widget in self.winfo_children()] + [GuestDashboard(self)]
+                        command=lambda: [widget.destroy() for widget in self.winfo_children()] + [AdminDashboard(self)]
+                        # command=lambda: [widget.destroy() for widget in self.winfo_children()] + [GuestDashboard(self)]
+                        
                         )
         self.guest_button.place(x=210, y=260)   
         

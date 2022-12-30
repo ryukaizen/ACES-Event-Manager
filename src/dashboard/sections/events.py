@@ -391,7 +391,7 @@ class NewEvent:
         error_message = ""
         if not self.event_name:
             error_message += "Please provide event name.\n"
-        if len(self.event_description) == 1:
+        if len(self.event_description) == 2:
             error_message += "Please provide event description.\n"
         if len(self.event_venue) == 1:
             error_message += "Please provide event venue.\n"
@@ -758,7 +758,7 @@ class UpdateEvent:
         error_message = ""
         if not self.event_name:
             error_message += "Please provide event name.\n"
-        if len(self.event_description) == 1:
+        if len(self.event_description) == 2:
             error_message += "Please provide event description.\n"
         if len(self.event_venue) == 1:
             error_message += "Please provide event venue.\n"

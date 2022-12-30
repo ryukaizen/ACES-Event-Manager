@@ -72,7 +72,7 @@ class AdminDashboard:
                                 unselected_hover_color="#FF8C00",
                                 fg_color=("#EDF6FA", "#1B1B24"),
                                 bg_color=("#EDF6FA", "#1B1B24"),
-                                values=["Events", "Venue", "Calendar", "Committee", "Options"],
+                                values=["Events", "Broadcast", "Committee", "Users", "Options"],
                                 command=self.section_choice,
                                 corner_radius=15,
                                 )

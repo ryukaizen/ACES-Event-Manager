@@ -1,4 +1,4 @@
-Event ID,Event Name,Event Description,Event Date,Event Time,Event Venue
+Event Name,Event Description,Event Date,Event Time,Event Venue
 Nigerundayo,"Hey folks !!!
 
 ACES is back with a tech talk on very fascinating topic of this era . Introducing expert talk on Robotics Process Automation(RPA) --
@@ -26,22 +26,22 @@ Team ACES
 
 
 
-",163262af-93ff-59f4-ba53-e31c8d9d33df
+"
 XAMPP Demonstration,"Some random guy on youtube tryna teach ya xampp basics 
 
 
 ",01/01/23,11:00 AM,"Conference Hall
 
 
-",795f8df4-ac40-5d4f-a34a-79d8f057df4d
+"
 New Event,"Robotics Webinar
 ",30/12/22,11:00 AM,"Conference Hall
-",eeefa335-169c-5284-b97f-d98c3ec28b9a
+"
 Farewell Party,"No need 
 
 ",01/01/23,12:00 AM,"DBATU
 
-",a607ad8a-f6cc-5a8b-9c62-9fdc0c937548
+"
 Test Event,"This is just for test
 ",12/01/23,10:00 AM,"Bathroom
-",cdf67443-b253-5bcc-8f5f-cad341b2c6e0
+"

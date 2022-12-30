@@ -29,13 +29,28 @@ class EventSection:
                         fg_color="#0065D9",
                         hover_color="#19941B",  
                         width=180, 
-                        height=70, 
+                        height=65, 
                         border_width=3,
                         border_color=("#EDF6FA", "#1B1B24"),
                         corner_radius=15,
                         command= lambda: NewEvent(frame)
                         )
-        new_event_button.grid(row=1, column=1, sticky="n", padx=35, pady=10)
+        new_event_button.grid(row=1, column=1, sticky="n", padx=35, pady=5)
+        
+        mark_completed_button = customtkinter.CTkButton(
+                        frame,
+                        text='Mark Completed',
+                        font=customtkinter.CTkFont(size=18), 
+                        fg_color="#0065D9",
+                        hover_color="#19941B",  
+                        width=180, 
+                        height=65, 
+                        border_width=3,
+                        border_color=("#EDF6FA", "#1B1B24"),
+                        corner_radius=15,
+                        command= lambda: MarkCompleted(frame, treeview)
+                        )
+        mark_completed_button.grid(row=2, column=1, sticky="n", padx=35, pady=5)
         
         update_event_button = customtkinter.CTkButton(
                         frame,
@@ -44,13 +59,13 @@ class EventSection:
                         fg_color="#0065D9",
                         hover_color="#19941B",  
                         width=180, 
-                        height=70, 
+                        height=65, 
                         border_width=3,
                         border_color=("#EDF6FA", "#1B1B24"),
                         corner_radius=15,
                         command= lambda: UpdateEvent(frame, treeview)
                         )
-        update_event_button.grid(row=2, column=1, sticky="n", padx=35, pady=10)
+        update_event_button.grid(row=3, column=1, sticky="n", padx=35, pady=5)
         
         cancel_event_button = customtkinter.CTkButton(
                         frame,
@@ -59,13 +74,13 @@ class EventSection:
                         fg_color="#0065D9",
                         hover_color="#FF0000",  
                         width=180, 
-                        height=70, 
+                        height=65, 
                         border_width=3,
                         border_color=("#EDF6FA", "#1B1B24"),
                         corner_radius=15,
                         command= lambda: CancelEvent(frame, treeview)
                         )
-        cancel_event_button.grid(row=3, column=1, sticky="s", padx=35, pady=10)
+        cancel_event_button.grid(row=4, column=1, sticky="s", padx=35, pady=5)
         
         event_history_button = customtkinter.CTkButton(
                         frame,
@@ -74,12 +89,12 @@ class EventSection:
                         fg_color="#0065D9",
                         hover_color="#19941B",  
                         width=180, 
-                        height=70, 
+                        height=65, 
                         border_width=3,
                         border_color=("#EDF6FA", "#1B1B24"),
                         corner_radius=15,
                         )
-        event_history_button.grid(row=4, column=1, sticky="s", padx=35, pady=10)
+        event_history_button.grid(row=5, column=1, sticky="s", padx=35, pady=5)
         
         export_data_button = customtkinter.CTkButton(
                         frame,
@@ -88,13 +103,13 @@ class EventSection:
                         fg_color="#0065D9",
                         hover_color="#19941B",  
                         width=180, 
-                        height=70, 
+                        height=65, 
                         border_width=3,
                         border_color=("#EDF6FA", "#1B1B24"),
                         corner_radius=15,
                         command= lambda: ExportData(frame)
                         )
-        export_data_button.grid(row=5, column=1, sticky="s", padx=35, pady=10)
+        export_data_button.grid(row=6, column=1, sticky="s", padx=35, pady=5)
         
         ##################################### Treeview #####################################
         
@@ -137,7 +152,7 @@ class EventSection:
         treeview.heading("event_venue", text="Location")
         treeview.heading("event_id", text="Event ID")
 
-        treeview.grid(row=1, column=2, rowspan=5, sticky="nsew", padx=10, pady=10)
+        treeview.grid(row=1, column=2, rowspan=6, sticky="nsew", padx=10, pady=10)
         
         query = "SELECT event_name, event_description, event_date, event_time, event_venue, event_id FROM events"
         while True:
@@ -487,6 +502,33 @@ class NewEvent:
             self.dialogue_window.destroy()
             EventSection(self.the_frame)
 
+class MarkCompleted:
+    def __init__(self, frame, treeview):
+        self.the_frame = frame
+        try:
+            selected_item = treeview.selection()[0]
+            self.event_name = treeview.item(selected_item)['values'][1]
+            self.event_description = treeview.item(selected_item)['values'][2]
+            self.event_date = treeview.item(selected_item)['values'][3]
+            self.event_time = treeview.item(selected_item)['values'][4]
+            self.event_venue = treeview.item(selected_item)['values'][5]
+            self.event_id = treeview.item(selected_item)['values'][6]
+        except IndexError:
+            messagebox.showerror("Error", "Please select an event to mark it as completed!")
+        else:
+            self.mark_completed(frame)
+    
+    def mark_completed(self, frame):
+        try:
+            # This inserts the selected event into completed_event tables and deletes it from the events table  
+            cursor.execute("""INSERT INTO completed_events (event_name, event_description, event_date, event_time, event_venue, event_id) SELECT event_name, event_description, event_date, event_time, event_venue, event_id FROM events WHERE event_id = "{}";""".format(self.event_id))
+            cursor.execute("""DELETE FROM events WHERE event_id = "{}";""".format(self.event_id))
+            cnx.commit()
+        except Exception as error:
+            raise Exception("Error", str(error))
+        else:
+            messagebox.showinfo("Success", "Event marked as completed!")
+            EventSection(self.the_frame)
 class UpdateEvent:
     def __init__(self, frame, treeview):
         self.the_frame = frame
@@ -950,7 +992,7 @@ class ExportData:
                         text="Select the format in which you want to export the data.",
                         font=customtkinter.CTkFont(size=16),
                         )
-        question_label.place(x=250, y=20, anchor="center")
+        question_label.place(x=250, y=80, anchor="center")
         
         csv_button = customtkinter.CTkButton(
                         self.dialogue_window,
@@ -959,103 +1001,68 @@ class ExportData:
                         height=60,
                         font=customtkinter.CTkFont(size=16),
                         fg_color="#0065D9",
+                        hover_color="#19941B", 
                         border_width=2,
                         border_color=("#1B1B24","#EDF6FA"),
                         corner_radius=15,
-                        command=self.export_data_csv(self.dialogue_window)
+                        command=self.export_data_csv
                         )
-        csv_button.place(x=135, y=60, anchor="center")
+        csv_button.place(x=250, y=160, anchor="center")
         
         xlsx_button = customtkinter.CTkButton(
                         self.dialogue_window,
                         text=".XLSX (Excel Spreadsheet)",
-                        width=140,
+                        width=200,
                         height=60,
                         font=customtkinter.CTkFont(size=16),
-                        fg_color="#FF0000",
-                        hover_color="#7D0000",
+                        fg_color="#0065D9",
+                        hover_color="#19941B",  
                         border_width=2,
                         border_color=("#1B1B24","#EDF6FA"),
                         corner_radius=15,
-                        command=self.dialogue_window.destroy(self.dialogue_window)
+                        command=self.export_data_xlsx
                         )
-        xlsx_button.place(x=370, y=330, anchor="center")
-        
-        txt_button = customtkinter.CTkButton(
-                        self.dialogue_window,
-                        text=".TXT (Plain Text)",
-                        width=140,
-                        height=60,
-                        font=customtkinter.CTkFont(size=16),
-                        fg_color="#FF0000",
-                        hover_color="#7D0000",
-                        border_width=2,
-                        border_color=("#1B1B24","#EDF6FA"),
-                        corner_radius=15,
-                        command=self.dialogue_window.destroy(self.dialogue_window)
-                        )
-        txt_button.place(x=370, y=330, anchor="center")                        
+        xlsx_button.place(x=250, y=240, anchor="center")   
     
-    def export_data_csv(self, window):
+    def export_data_csv(self):
+        self.dialogue_window.destroy()
+        filepath = filedialog.asksaveasfilename(defaultextension='.csv', filetypes=[('CSV files', '*.csv'), ('All files', '*')]) 
+        try:   
+            cursor.execute("""SELECT event_name, event_description, event_date, event_time, event_venue FROM events;""")
+            data = cursor.fetchall()
+        except Exception as error:
+            raise Exception("Error", error)  
+        else:
+            if filepath:
+                with open(filepath, "w", newline="") as file:
+                    writer = csv.writer(file)
+                    writer.writerow(["Sr. No.", "Event Name", "Event Description", "Event Date", "Event Time", "Event Venue"])
+                    i = 0
+                    for row in data:
+                        i = i + 1
+                        data = [i, row[0], row[1], row[2], row[3], row[4]]
+                        writer.writerow(data)      
+        finally:        
+            EventSection(self.the_frame)  
+            
+    def export_data_xlsx(self):
+        self.dialogue_window.destroy()
+        filepath = filedialog.asksaveasfilename(defaultextension='.xlsx', filetypes=[('Excel files', '*.xlsx'), ('All files', '*')])
         try:
             cursor.execute("""SELECT event_name, event_description, event_date, event_time, event_venue FROM events;""")
             data = cursor.fetchall()
-            filepath = filedialog.asksaveasfilename(defaultextension='.csv', filetypes=[('CSV files', '*.csv'), ('All files', '*')])
-            with open(filepath, "w", newline="") as file:
-                writer = csv.writer(file)
-                writer.writerow(["Event Name", "Event Description", "Event Date", "Event Time", "Event Venue"])
-                writer.writerows(data)
         except Exception as error:
-            raise Exception("Error", str(error))  
+            raise Exception("Error", error)
         else:
-            self.dialogue_window.destroy()
+            if filepath:
+                workbook = openpyxl.Workbook()
+                sheet = workbook.active
+                sheet.append(["Sr. No.", "Event Name", "Event Description", "Event Date", "Event Time", "Event Venue"])
+                i = 0
+                for row in data:
+                    i= i + 1
+                    newrow = [i, row[0], row[1], row[2], row[3], row[4]]
+                    sheet.append(newrow)
+                workbook.save(filepath)
+        finally:        
             EventSection(self.the_frame)
-            
-    
-            
-    # def export_data_xlsx(self, window):
-    #     try:
-    #         cursor.execute("""SELECT * FROM events;""")
-    #         data = cursor.fetchall()
-    #         filepath = filedialog.asksaveasfilename(defaultextension='.xlsx', filetypes=[('Excel files', '*.xlsx'), ('All files', '*')])
-    #         if filepath:
-    #             workbook = openpyxl.Workbook()
-    #             sheet = workbook.active
-    #             for row in data:
-    #                 sheet.append(row)
-    #             workbook.save(filepath)
-    #     except Exception as error:
-    #         raise Exception("Error", str(error))
-    #     else:
-    #         self.dialogue_window.destroy()
-    #         EventSection(self.the_frame)
-            
-    # def export_data_txt(self, window):
-    #     try:
-    #         cursor.execute("""SELECT * FROM events;""")
-    #         data = cursor.fetchall()
-    #         filepath = filedialog.asksaveasfilename(defaultextension='.txt', filetypes=[('Text files', '*.txt'), ('All files', '*')])
-    #         if filepath:
-    #             with open(filepath, "w") as file:
-    #                 for row in data:
-    #                     file.write(row)
-    #     except Exception as error:
-    #         raise Exception("Error", str(error))
-    #     else:
-    #         self.dialogue_window.destroy()
-    #         EventSection(self.the_frame)
-            
-    # def export_data_pdf(self, window):
-    #     try:
-    #         cursor.execute("""SELECT * FROM events;""")
-    #         data = cursor.fetchall()
-    #         filepath = filedialog.asksaveasfilename(defaultextension='.pdf', filetypes=[('PDF files', '*.pdf'), ('All files', '*')])
-    #         if filepath:
-    #             with open(filepath, "w") as file:
-    #                 pdf = dicttoxml(data)
-    #                 file.write(pdf)
-    #     except Exception as error:
-    #         raise Exception("Error", str(error))
-    #     else:
-    #         self.dialogue_window.destroy()
-    #         EventSection(self.the_frame)

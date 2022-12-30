@@ -998,12 +998,12 @@ class ExportData:
     
     def export_data_csv(self, window):
         try:
-            cursor.execute("""SELECT * FROM events;""")
+            cursor.execute("""SELECT event_name, event_description, event_date, event_time, event_venue FROM events;""")
             data = cursor.fetchall()
             filepath = filedialog.asksaveasfilename(defaultextension='.csv', filetypes=[('CSV files', '*.csv'), ('All files', '*')])
             with open(filepath, "w", newline="") as file:
                 writer = csv.writer(file)
-                writer.writerow(["Event ID", "Event Name", "Event Description", "Event Date", "Event Time", "Event Venue"])
+                writer.writerow(["Event Name", "Event Description", "Event Date", "Event Time", "Event Venue"])
                 writer.writerows(data)
         except Exception as error:
             raise Exception("Error", str(error))  

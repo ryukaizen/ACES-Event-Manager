@@ -1,6 +1,7 @@
 import customtkinter
 import mysql.connector
 import os
+import tkinter
 import time
 
 from tkinter import ttk, messagebox, filedialog
@@ -311,6 +312,18 @@ class PublishEmail:
                         )
         add_attachment_button.place(relx=0.88, rely=0.3, anchor="n") 
         
+        # self.check_var = tkinter.StringVar("on")
+
+        self.socialmedia_checkbox = customtkinter.CTkCheckBox(
+                        frame, 
+                        text="Include Social Media Links",
+                        font=customtkinter.CTkFont(size=16), 
+                        command=self.socialmedia_checkbox_clicked,
+                        # variable=self.check_var, 
+                        onvalue="on", 
+                        offvalue="off")
+        self.socialmedia_checkbox.place(relx=0.88, rely=0.45, anchor="n") 
+        
         ################################ Insert existing values ################################
         
         self.event_name_entry.insert(0, self.event_name)
@@ -376,6 +389,9 @@ class PublishEmail:
         # Join the filenames with a comma and update the label
         self.selected_attachment_label.configure(text=(",".join(file_names)))
         
-        
-
-            
+    def socialmedia_checkbox_clicked(self):
+        checkbox_value = self.socialmedia_checkbox.get()
+        if checkbox_value == "on":
+            print("on")
+        else:
+            print("off")

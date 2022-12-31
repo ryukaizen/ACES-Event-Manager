@@ -12,7 +12,6 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 
 load_dotenv()
-msg = MIMEMultipart()
 
 ADMIN_EMAIL = os.getenv('ADMIN_EMAIL')
 ADMIN_EMAIL_PASS = os.getenv('ADMIN_EMAIL_PASS')
@@ -519,10 +518,11 @@ class PublishEmail:
         except Exception as error:
             raise Exception("Error", str(error))
         else:
+            msg = MIMEMultipart()
             msg['Subject'] = subject
             msg['From'] = ADMIN_EMAIL
             msg['To'] = email
-        
+
             msg.attach(MIMEText(self.body, 'plain'))
             
             if self.attachment_filepath != None:
@@ -542,7 +542,7 @@ class PublishEmail:
                 del msg['From']
                 del msg['Subject']
                 del msg['To']
-            
+
             except Exception as error:
                 raise Exception("Error:", str(error))
             else:

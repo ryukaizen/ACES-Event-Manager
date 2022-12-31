@@ -1,11 +1,23 @@
 import customtkinter
 import mysql.connector
 import os
-import tkinter
 import time
+import smtplib
 
 from tkinter import ttk, messagebox, filedialog
 from ...database.db_connect import cursor, cnx
+from dotenv import load_dotenv
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
+
+load_dotenv()
+msg = MIMEMultipart()
+
+ADMIN_EMAIL = os.getenv('ADMIN_EMAIL')
+ADMIN_EMAIL_PASS = os.getenv('ADMIN_EMAIL_PASS')
+EMAIL_SERVER_HOST = os.getenv('EMAIL_SERVER_HOST')
+EMAIL_SERVER_PORT = os.getenv('EMAIL_SERVER_PORT') 
 
 customtkinter.set_appearance_mode("light") 
 customtkinter.set_default_color_theme("dark-blue")
@@ -295,10 +307,13 @@ class PublishEmail:
         
         self.selected_attachment_label = customtkinter.CTkLabel(
                         frame,
-                        text="",
-                        font=customtkinter.CTkFont(size=18), 
+                        text="Selected Attachment: None",
+                        font=customtkinter.CTkFont(size=16), 
                         )
         self.selected_attachment_label.place(relx=0.88, rely=0.2, anchor="center")
+        
+        # Set to None as attachment is not set initially
+        self.attachment_filepath = None
         
         add_attachment_button = customtkinter.CTkButton(
                         frame,
@@ -312,17 +327,43 @@ class PublishEmail:
                         )
         add_attachment_button.place(relx=0.88, rely=0.3, anchor="n") 
         
-        # self.check_var = tkinter.StringVar("on")
-
         self.socialmedia_checkbox = customtkinter.CTkCheckBox(
                         frame, 
                         text="Include Social Media Links",
                         font=customtkinter.CTkFont(size=16), 
-                        command=self.socialmedia_checkbox_clicked,
-                        # variable=self.check_var, 
                         onvalue="on", 
                         offvalue="off")
         self.socialmedia_checkbox.place(relx=0.88, rely=0.45, anchor="n") 
+        
+        test_publish_button = customtkinter.CTkButton(
+                            frame,
+                            text="Test Publish",
+                            font=customtkinter.CTkFont(size=18), 
+                            fg_color="#0065D9",
+                            hover_color="#19941B",  
+                            width=180, 
+                            height=65, 
+                            border_width=3,
+                            border_color=("#EDF6FA", "#1B1B24"),
+                            corner_radius=15,
+                            command=self.prompt_test_publish
+                            )
+        test_publish_button.place(relx=0.88, rely=0.6, anchor="n") 
+        
+        publish_button = customtkinter.CTkButton(
+                            frame,
+                            text="Publish",
+                            font=customtkinter.CTkFont(size=20, weight="bold"), 
+                            fg_color="#D96C00",
+                            hover_color="#FF8C00",  
+                            width=180, 
+                            height=65, 
+                            border_width=3,
+                            border_color=("#EDF6FA", "#1B1B24"),
+                            corner_radius=15,
+                            # command=self.prompt_publish
+                            )
+        publish_button.place(relx=0.88, rely=0.75, anchor="n") 
         
         ################################ Insert existing values ################################
         
@@ -332,13 +373,16 @@ class PublishEmail:
         self.event_time_entry.insert(0, self.event_time)
         self.event_venue_entry.insert(0, self.event_venue.strip())
         
+        # Make checkbox by default checked (Enabled including social media links)
+        self.socialmedia_checkbox.select()
+        
         # This inserts already generated content in the textbox, if any exists
         try:
             query = """SELECT content FROM broadcast WHERE event_id = "{}";""".format(self.event_id)
             cursor.execute(query)
             content = cursor.fetchone()[0]
         except Exception:
-            print("\nFound no saved content for event_id:", self.event_id)
+            messagebox.showinfo("Configure Email Content", "Found no saved content for event_id: {}\n\nKindly generate content first, edit it by your own according and then save it for later use.".format(self.event_id))
         else:
             if content:
                 self.generated_content.insert("0.0", content)
@@ -362,6 +406,9 @@ class PublishEmail:
     
     def save_generated_content(self):
         final_content = self.generated_content.get("0.0", "end-1c")
+        if len(final_content) == 0:
+            messagebox.showerror("Error", "Content is empty!")
+            return 
         
         # Remove extra empty lines from the end
         final_final_content = final_content.strip()
@@ -387,11 +434,115 @@ class PublishEmail:
         file_names = [os.path.basename(file_path) for file_path in self.attachment_filepath]
         
         # Join the filenames with a comma and update the label
-        self.selected_attachment_label.configure(text=(",".join(file_names)))
-        
-    def socialmedia_checkbox_clicked(self):
-        checkbox_value = self.socialmedia_checkbox.get()
-        if checkbox_value == "on":
-            print("on")
+        self.selected_attachment_label.configure(text=("Selected Attachment: \n" + ",".join(file_names)))
+            
+    def prompt_test_publish(self):
+        self.body = self.generated_content.get("0.0", "end-1c")
+        if len(self.body) == 0:
+            messagebox.showerror("Error", "Please generate content first!")
         else:
-            print("off")
+            self.dialogue_window = customtkinter.CTkToplevel(fg_color=("#EDF6FA", "#1B1B24"))
+            self.dialogue_window.geometry("600x400")
+            self.dialogue_window.title("Test Publish Email")
+            self.dialogue_window.resizable(False, False)
+            
+            question_label = customtkinter.CTkLabel(
+                            self.dialogue_window,
+                            text="This will send a trial email to yourself, \naccording to the configuration you've done.",
+                            font=customtkinter.CTkFont(size=20, weight="bold", slant="roman")
+                            )
+            question_label.place(relx=0.5, rely=0.1, anchor="n")
+        
+            subject_label = customtkinter.CTkLabel(
+                            self.dialogue_window,
+                            text="Subject:",
+                            font=customtkinter.CTkFont(size=20, slant="roman")
+                            )
+            subject_label.place(relx=0.2, rely=0.3, anchor="n")
+        
+            self.subject_entry = customtkinter.CTkEntry(
+                            self.dialogue_window,                    
+                            width=420,
+                            height=30,
+                            font=customtkinter.CTkFont(size=20),
+                            border_width=3,
+                            border_color=("#1B1B24", "#EDF6FA"),
+                            corner_radius=10,
+                            )
+            self.subject_entry.place(relx=0.5, rely=0.38, anchor="n")
+        
+            xtest_publish_button = customtkinter.CTkButton(
+                            self.dialogue_window,
+                            text="Publish",
+                            font=customtkinter.CTkFont(size=20, weight="bold"), 
+                            fg_color="#D96C00",
+                            hover_color="#FF8C00", 
+                            width=180, 
+                            height=65, 
+                            border_width=3,
+                            border_color=("#EDF6FA", "#1B1B24"),
+                            corner_radius=15,
+                            command=self.test_publish
+                            )
+            xtest_publish_button.place(relx=0.3, rely=0.55, anchor="n")
+        
+            cancel_button = customtkinter.CTkButton(
+                            self.dialogue_window,
+                            text="Cancel",
+                            font=customtkinter.CTkFont(size=20, weight="bold"), 
+                            fg_color="#0065D9",
+                            hover_color="#FF0000",  
+                            width=180, 
+                            height=65, 
+                            border_width=3,
+                            border_color=("#EDF6FA", "#1B1B24"),
+                            corner_radius=15,
+                            command=lambda: self.dialogue_window.destroy()
+                            )
+            cancel_button.place(relx=0.7, rely=0.55, anchor="n") 
+        
+    def test_publish(self):
+        subject = self.subject_entry.get()
+        if len(subject) == 0:
+            messagebox.showerror("Error", "Subject is empty!")
+            return
+        
+        # Fetch logged in user's username from session file
+        f = open('src/dashboard/sections/session.txt', 'r')
+        username = f.read()
+        f.close()
+        
+        # Using previously fetched username, fetch their email from database
+        try:
+            cursor.execute("""SELECT email FROM users WHERE username = "{}";""".format(username))
+            email = cursor.fetchall()[0][0]
+        except Exception as error:
+            raise Exception("Error", str(error))
+        else:
+            msg['Subject'] = subject
+            msg['From'] = ADMIN_EMAIL
+            msg['To'] = email
+        
+            msg.attach(MIMEText(self.body, 'plain'))
+            
+            if self.attachment_filepath != None:
+                # Attach each file to the email
+                for file_path in self.attachment_filepath:
+                    with open(file_path, "rb") as f:
+                        attachment = MIMEApplication(f.read(), _subtype="octet-stream")
+                        attachment.add_header("Content-Disposition", "attachment", filename=os.path.basename(file_path))
+                        msg.attach(attachment)
+            
+            try:
+                server = smtplib.SMTP(EMAIL_SERVER_HOST, EMAIL_SERVER_PORT)
+                server.starttls()
+                server.login(ADMIN_EMAIL, ADMIN_EMAIL_PASS)
+                server.send_message(msg)
+                server.quit()
+            except Exception as error:
+                raise Exception("Error:", str(error))
+            else:
+                self.dialogue_window.destroy()
+                messagebox.showinfo("Success", "Email sent successfully!")
+                # self.publish_email(self.the_frame)
+        

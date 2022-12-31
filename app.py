@@ -457,21 +457,32 @@ class AEM(customtkinter.CTk):
                     raise Exception("Error", str(error))  
                 else:
                     if not False:
-                        messagebox.showinfo("Registration Successful", f"Registration Successful!\n\nWelcome,{self.username}.\nKindly login to proceed further.")
+                        messagebox.showinfo("Registration Successful", f"Registration Successful!\n\nWelcome, {self.username}.\nKindly login to proceed further.")
                         print("Registration Successful. Username added: " + self.username)
                         
     def after_login(self, username):
-        messagebox.showinfo("Login Successful", "Welcome, " + username)
-        print("\n[*] Login Successful. Welcome, " + username)
-        for widget in self.winfo_children():
-            widget.destroy()
+        try:
+            cursor.execute("""SELECT full_name FROM users WHERE username = {};""".format(username))
+            full_name = cursor.fetchone()[0]
+        except Exception as e:
+            messagebox.showerror("Error", e)
+            print("[x] Error: ", e)
+        else:   
+            messagebox.showinfo("Login Successful", "Welcome, " + full_name)
+            print("\n[*] Login Successful. Welcome, " + full_name)
+            for widget in self.winfo_children():
+                widget.destroy()
             
-        cursor.execute("SELECT role FROM users WHERE username = {};".format(username))
-        role = cursor.fetchone()[0]
-        if role == "ADMIN":
-            AdminDashboard(self)
-        else:
-            UserDashboard(self)
+            cursor.execute("SELECT role FROM users WHERE username = {};".format(username))
+            role = cursor.fetchone()[0]
+            if role == "ADMIN":
+                # Temporarily store username for later use
+                f = open('src/dashboard/sections/session.txt', 'w')
+                f.write(username)
+                f.close()
+                AdminDashboard(self)
+            else:
+                UserDashboard(self)
             
     # FUNCTION FOR QUICK LOGIN DURING TESTING, REMOVE LATER
     def test_login(self):
@@ -479,9 +490,11 @@ class AEM(customtkinter.CTk):
         print("\n[*] Login Successful. TEST LOGIN.")
         for widget in self.winfo_children():
             widget.destroy()
-
-        AdminDashboard(self)
-        # UserDashboard(self)  
+        # Temporarily store username for later use
+        f = open('src/dashboard/sections/session.txt', 'w')
+        f.write("2130331245503")
+        f.close()
+        AdminDashboard(self)  
         
 if __name__ == "__main__":
     aem = AEM()

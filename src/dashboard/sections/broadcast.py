@@ -542,7 +542,6 @@ class PublishEmail:
                 del msg['From']
                 del msg['Subject']
                 del msg['To']
-                self.body = ""
             
             except Exception as error:
                 raise Exception("Error:", str(error))

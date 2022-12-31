@@ -3,9 +3,8 @@ import tkinter
 import mysql.connector
 import time
 
-
 from tkinter import ttk, messagebox, filedialog
-from ...database.db_connect import cursor
+from ...database.db_connect import cursor, cnx
 
 customtkinter.set_appearance_mode("light") 
 customtkinter.set_default_color_theme("dark-blue")
@@ -264,7 +263,22 @@ class PublishEmail:
                             corner_radius=15,
                             command=self.generate_email_text 
                             )
-        generate_content_button.place(x=780, y=410, anchor="center")
+        generate_content_button.place(x=660, y=410, anchor="center")
+        
+        save_content_button = customtkinter.CTkButton(
+                            frame,
+                            text="Save Content",
+                            font=customtkinter.CTkFont(size=18), 
+                            fg_color="#0065D9",
+                            hover_color="#19941B",  
+                            width=180, 
+                            height=65, 
+                            border_width=3,
+                            border_color=("#EDF6FA", "#1B1B24"),
+                            corner_radius=15,
+                            command=self.save_generated_content
+                            )
+        save_content_button.place(x=900, y=410, anchor="center")
         
         self.generated_content = customtkinter.CTkTextbox(
                         frame,
@@ -285,6 +299,18 @@ class PublishEmail:
         self.event_date_entry.insert(0, self.event_date)
         self.event_time_entry.insert(0, self.event_time)
         self.event_venue_entry.insert(0, self.event_venue)
+        
+        # This inserts already generated content in the textbox, if any exists
+        try:
+            query = """SELECT content FROM broadcast WHERE event_id = "{}";""".format(self.event_id)
+            cursor.execute(query)
+            content = cursor.fetchone()[0]
+            if content:
+                self.generated_content.insert("0.0", content)
+            else:
+                print("Found no saved content for event_id:", self.event_id)
+        except Exception as error:
+            raise Exception("Error", str(error))  
 
     def generate_email_text(self):
         event_name = self.event_name_entry.get()
@@ -303,4 +329,23 @@ class PublishEmail:
         self.generated_content.delete("0.0", "end")
         self.generated_content.insert("0.0", email_text)
         print(email_text)
+    
+    def save_generated_content(self):
+        final_content = self.generated_content.get("0.0", "end-1c")
+        
+        # Remove extra empty lines from the end
+        final_final_content = final_content.strip()
+        
+        # Format it as per MySQL entry
+        escaped_final_content = mysql.connector.conversion.MySQLConverter().escape(final_final_content) 
+        final_final_final_content = escaped_final_content
+               
+        try:
+            query = """INSERT INTO broadcast (event_id, content) VALUES ("{}", "{}") ON DUPLICATE KEY UPDATE content = "{}";""".format(self.event_id,  final_final_final_content,  final_final_final_content)
+            cursor.execute(query)
+            cnx.commit() 
+        except Exception as error:
+            raise Exception("Error", str(error))  
+        else:
+            messagebox.showinfo("Success", "Content saved successfully!")
             

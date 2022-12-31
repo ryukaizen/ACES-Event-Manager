@@ -3,5 +3,3 @@ mysql.connector
 openpyxl
 python-dotenv
 tkcalendar
-
-xlwt

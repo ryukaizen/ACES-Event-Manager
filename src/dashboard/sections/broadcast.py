@@ -539,6 +539,10 @@ class PublishEmail:
                 server.login(ADMIN_EMAIL, ADMIN_EMAIL_PASS)
                 server.send_message(msg)
                 server.quit()
+                del msg['From']
+                del msg['Subject']
+                del msg['To']
+            
             except Exception as error:
                 raise Exception("Error:", str(error))
             else:

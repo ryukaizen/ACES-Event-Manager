@@ -292,6 +292,18 @@ class PublishEmail:
                         )
         self.generated_content.place(x=780, y=220, anchor="center")
         
+        add_attachment_button = customtkinter.CTkButton(
+                        frame,
+                        text="Attach Flyer",
+                        font=customtkinter.CTkFont(size=16),
+                        fg_color="#0065D9",
+                        border_width=2,
+                        border_color=("#1B1B24","#EDF6FA"),
+                        corner_radius=15,
+                        # command=lambda: BroadcastSection(frame)
+                        )
+        add_attachment_button.place(relx=0.8, rely=0.02, anchor="n") 
+        
         ################################ Insert existing values ################################
         
         self.event_name_entry.insert(0, self.event_name)
@@ -305,12 +317,11 @@ class PublishEmail:
             query = """SELECT content FROM broadcast WHERE event_id = "{}";""".format(self.event_id)
             cursor.execute(query)
             content = cursor.fetchone()[0]
+        except Exception:
+            print("\nFound no saved content for event_id:", self.event_id)
+        else:
             if content:
                 self.generated_content.insert("0.0", content)
-            else:
-                print("Found no saved content for event_id:", self.event_id)
-        except Exception as error:
-            raise Exception("Error", str(error))  
 
     def generate_email_text(self):
         event_name = self.event_name_entry.get()
@@ -328,7 +339,6 @@ class PublishEmail:
         
         self.generated_content.delete("0.0", "end")
         self.generated_content.insert("0.0", email_text)
-        print(email_text)
     
     def save_generated_content(self):
         final_content = self.generated_content.get("0.0", "end-1c")
@@ -338,10 +348,10 @@ class PublishEmail:
         
         # Format it as per MySQL entry
         escaped_final_content = mysql.connector.conversion.MySQLConverter().escape(final_final_content) 
-        final_final_final_content = escaped_final_content
+        self.final_final_final_content = escaped_final_content
                
         try:
-            query = """INSERT INTO broadcast (event_id, content) VALUES ("{}", "{}") ON DUPLICATE KEY UPDATE content = "{}";""".format(self.event_id,  final_final_final_content,  final_final_final_content)
+            query = """INSERT INTO broadcast (event_id, content) VALUES ("{}", "{}") ON DUPLICATE KEY UPDATE content = "{}";""".format(self.event_id,  self.final_final_final_content,  self.final_final_final_content)
             cursor.execute(query)
             cnx.commit() 
         except Exception as error:

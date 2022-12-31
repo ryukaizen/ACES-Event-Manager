@@ -1,6 +1,6 @@
 import customtkinter
-import tkinter
 import mysql.connector
+import os
 import time
 
 from tkinter import ttk, messagebox, filedialog
@@ -292,6 +292,13 @@ class PublishEmail:
                         )
         self.generated_content.place(x=780, y=220, anchor="center")
         
+        self.selected_attachment_label = customtkinter.CTkLabel(
+                        frame,
+                        text="",
+                        font=customtkinter.CTkFont(size=18), 
+                        )
+        self.selected_attachment_label.place(relx=0.88, rely=0.2, anchor="center")
+        
         add_attachment_button = customtkinter.CTkButton(
                         frame,
                         text="Attach Flyer",
@@ -300,9 +307,9 @@ class PublishEmail:
                         border_width=2,
                         border_color=("#1B1B24","#EDF6FA"),
                         corner_radius=15,
-                        # command=lambda: BroadcastSection(frame)
+                        command=self.get_attachment_filepath
                         )
-        add_attachment_button.place(relx=0.8, rely=0.02, anchor="n") 
+        add_attachment_button.place(relx=0.88, rely=0.3, anchor="n") 
         
         ################################ Insert existing values ################################
         
@@ -358,4 +365,17 @@ class PublishEmail:
             raise Exception("Error", str(error))  
         else:
             messagebox.showinfo("Success", "Content saved successfully!")
+    
+    def get_attachment_filepath(self):
+        self.attachment_filepath = filedialog.askopenfilename(multiple=True)
+        
+        # THIS IS JUST TO DISPLAY THE USER THAT HE HAS SELECTED THE RIGHT FILE/s
+        # Get the filename/s from the filepath/s
+        file_names = [os.path.basename(file_path) for file_path in self.attachment_filepath]
+        
+        # Join the filenames with a comma and update the label
+        self.selected_attachment_label.configure(text=(",".join(file_names)))
+        
+        
+
             

@@ -21,7 +21,7 @@ while True:
         )
     except mysql.connector.Error as err:
         print(err)
-        print("[*] Trying to connect again...\n")
+        print("[*] Trying to connect again... (Press Ctrl + C to exit.)\n")
         time.sleep(5)
         continue
     else:

@@ -327,10 +327,10 @@ class PublishEmail:
         ################################ Insert existing values ################################
         
         self.event_name_entry.insert(0, self.event_name)
-        self.event_description_entry.insert("0.0", self.event_description)
+        self.event_description_entry.insert("0.0", self.event_description.strip())
         self.event_date_entry.insert(0, self.event_date)
         self.event_time_entry.insert(0, self.event_time)
-        self.event_venue_entry.insert(0, self.event_venue)
+        self.event_venue_entry.insert(0, self.event_venue.strip())
         
         # This inserts already generated content in the textbox, if any exists
         try:

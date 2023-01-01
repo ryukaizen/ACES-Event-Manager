@@ -1225,7 +1225,7 @@ class PublishTelegram:
             
             question_label = customtkinter.CTkLabel(
                             self.dialogue_window,
-                            text=f"This will post a Telegram message to\nthe channel/chat according to\nthe specified environment variables.\n Current channel: {CHANNELS}",
+                            text=f"This will post a Telegram message to\nthe channel/chat according to\nthe specified environment variables.\n Current channel: {TELEGRAM_CHANNEL}",
                             font=customtkinter.CTkFont(size=20, weight="bold", slant="roman")
                             )
             question_label.place(relx=0.5, rely=0.1, anchor="n")

@@ -3,6 +3,7 @@ import customtkinter
 from PIL import Image
 from .sections.events import EventSection
 from .sections.broadcast import BroadcastSection
+from .sections.users import UsersSection
 
 customtkinter.set_appearance_mode("light") 
 customtkinter.set_default_color_theme("dark-blue")
@@ -108,9 +109,9 @@ class AdminDashboard:
             EventSection(self.body_frame)
         elif value == "Broadcast":
             BroadcastSection(self.body_frame)
-        # elif value == "Calendar":
-        #     self.calendar_section()
         # elif value == "Committee":
         #     self.committee_section()
+        elif value == "Users":
+            UsersSection(self.body_frame)
         # elif value == "Options":
         #     self.options_section()

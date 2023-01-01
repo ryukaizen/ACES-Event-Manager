@@ -360,7 +360,7 @@ class PublishEmail:
                             border_width=3,
                             border_color=("#EDF6FA", "#1B1B24"),
                             corner_radius=15,
-                            # command=self.prompt_publish
+                            command=self.prompt_publish
                             )
         publish_button.place(relx=0.88, rely=0.75, anchor="n") 
         
@@ -548,5 +548,118 @@ class PublishEmail:
             else:
                 self.dialogue_window.destroy()
                 messagebox.showinfo("Success", "Email sent successfully!")
-                # self.publish_email(self.the_frame)
+            
+    def prompt_publish(self):
+        self.body = self.generated_content.get("0.0", "end-1c")
+        if len(self.body) == 0:
+            messagebox.showerror("Error", "Please generate content first!")
+        else:
+            self.dialogue_window = customtkinter.CTkToplevel(fg_color=("#EDF6FA", "#1B1B24"))
+            self.dialogue_window.geometry("600x400")
+            self.dialogue_window.title("Publish Email")
+            self.dialogue_window.resizable(False, False)
+            
+            question_label = customtkinter.CTkLabel(
+                            self.dialogue_window,
+                            text="This will broadcast email to everyone, \naccording to the configuration you've done.",
+                            font=customtkinter.CTkFont(size=20, weight="bold", slant="roman")
+                            )
+            question_label.place(relx=0.5, rely=0.1, anchor="n")
         
+            subject_label = customtkinter.CTkLabel(
+                            self.dialogue_window,
+                            text="Subject:",
+                            font=customtkinter.CTkFont(size=20, slant="roman")
+                            )
+            subject_label.place(relx=0.2, rely=0.3, anchor="n")
+        
+            self.subject_entry = customtkinter.CTkEntry(
+                            self.dialogue_window,                    
+                            width=420,
+                            height=30,
+                            font=customtkinter.CTkFont(size=20),
+                            border_width=3,
+                            border_color=("#1B1B24", "#EDF6FA"),
+                            corner_radius=10,
+                            )
+            self.subject_entry.place(relx=0.5, rely=0.38, anchor="n")
+        
+            xtest_publish_button = customtkinter.CTkButton(
+                            self.dialogue_window,
+                            text="Publish",
+                            font=customtkinter.CTkFont(size=20, weight="bold"), 
+                            fg_color="#D96C00",
+                            hover_color="#FF8C00", 
+                            width=180, 
+                            height=65, 
+                            border_width=3,
+                            border_color=("#EDF6FA", "#1B1B24"),
+                            corner_radius=15,
+                            command=self.publish
+                            )
+            xtest_publish_button.place(relx=0.3, rely=0.55, anchor="n")
+        
+            cancel_button = customtkinter.CTkButton(
+                            self.dialogue_window,
+                            text="Cancel",
+                            font=customtkinter.CTkFont(size=20, weight="bold"), 
+                            fg_color="#0065D9",
+                            hover_color="#FF0000",  
+                            width=180, 
+                            height=65, 
+                            border_width=3,
+                            border_color=("#EDF6FA", "#1B1B24"),
+                            corner_radius=15,
+                            command=lambda: self.dialogue_window.destroy()
+                            )
+            cancel_button.place(relx=0.7, rely=0.55, anchor="n") 
+            
+    def publish(self):
+        subject = self.subject_entry.get()
+        if len(subject) == 0:
+            messagebox.showerror("Error", "Subject is empty!")
+            return
+        
+        try:
+            cursor.execute("""SELECT email FROM users;""")
+            emails = cursor.fetchall()
+            if not emails:
+                messagebox.showerror("Error", "No email addresses found in the database!")
+                print("[x] No email addresses found in the database.")
+        except mysql.connector.Error as err:
+            print("Error fetching email addresses from the database:", err)
+        
+        if emails:
+            try:
+                server = smtplib.SMTP(EMAIL_SERVER_HOST, EMAIL_SERVER_PORT)
+                server.starttls()
+                server.login(ADMIN_EMAIL, ADMIN_EMAIL_PASS)
+            except smtplib.SMTPException as err:
+                print("Error connecting to the SMTP server:", err)
+
+            msg = MIMEMultipart()
+            msg['Subject'] = subject
+            msg['From'] = ADMIN_EMAIL
+            msg['To'] = ",".join([email[0] for email in emails])
+
+            msg.attach(MIMEText(self.body, 'plain'))
+                
+            if self.attachment_filepath != None:
+                # Attach each file to the email
+                for file_path in self.attachment_filepath:
+                    with open(file_path, "rb") as f:
+                        attachment = MIMEApplication(f.read(), _subtype="octet-stream")
+                        attachment.add_header("Content-Disposition", "attachment", filename=os.path.basename(file_path))
+                        msg.attach(attachment)
+
+            try:
+                server.send_message(msg)
+            except smtplib.SMTPException as err:
+                print("Error sending email to the recipients:", err)
+            else:
+                server.quit()
+                del msg['From']
+                del msg['Subject']
+                del msg['To']
+                self.dialogue_window.destroy()
+                messagebox.showinfo("Success", "Email broadcasted successfully!")

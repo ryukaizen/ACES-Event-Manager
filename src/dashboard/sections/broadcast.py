@@ -1,6 +1,8 @@
 import customtkinter
+import html
 import mysql.connector
 import os
+import re
 import time
 import smtplib
 
@@ -436,7 +438,8 @@ class PublishEmail:
         self.selected_attachment_label.configure(text=("Selected Attachment: \n" + ",".join(file_names)))
             
     def prompt_test_publish(self):
-        self.body = self.generated_content.get("0.0", "end-1c")
+        self.body = self.generated_content.get("0.0", "end-1c")    
+        
         if len(self.body) == 0:
             messagebox.showerror("Error", "Please generate content first!")
         else:
@@ -528,13 +531,32 @@ class PublishEmail:
         except Exception as error:
             raise Exception("Error", str(error))
         else:
-            msg = MIMEMultipart()
+            msg = MIMEMultipart('alternative')
             msg['Subject'] = subject
             msg['From'] = ADMIN_EMAIL
             msg['To'] = email
-
-            msg.attach(MIMEText(self.body, 'plain'))
             
+            if self.socialmedia_checkbox.get() == "on":
+                self.footer = """
+                <a href="https://www.instagram.com/aces_dbatu"; target="_blank">
+                <img src="https://statesborodowntown.com/wp-content/uploads/2016/01/instagram-Logo-PNG-Transparent-Background-download.png"; width="50px"; height="50px"; title="Visit us on Instagram"></a>
+                
+                <a href="https://www.cse.dbatu.ac.in/?page_id=2458"; target="_blank">
+                <img src="https://t2b756.n3cdn1.secureserver.net/wp-content/uploads/2022/04/SGN_04_09_2022_1649504395356.png"; width="50px"; height="50px"; title="Visit ACES now!!!"></a>"""
+                
+                # THIS TOOK ME HOURS TO FIGURE OUT ;-;
+                # Adds newline characters where there is line break in plain text
+                # Replaces two newline chars ("\n\n") with two html break tags ("<br><br>")
+                html_text = re.sub(r'\n{2,}', '<br><br>', self.body)
+                # Replaces single newline char ("\n") with single html break tag ("<br>")
+                html_text = re.sub(r'\n', '<br>', self.body)
+                
+                frame = f"{html_text}<br><br>{self.footer}"
+                
+                msg.attach(MIMEText(frame, 'html'))
+            else:
+                msg.attach(MIMEText(self.body, 'plain'))
+                            
             if self.attachment_filepath != None:
                 # Attach each file to the email
                 for file_path in self.attachment_filepath:

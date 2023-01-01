@@ -1,5 +1,4 @@
 import customtkinter
-import html
 import mysql.connector
 import os
 import re
@@ -52,7 +51,7 @@ class BroadcastSection:
                         width=180, 
                         height=65, 
                         corner_radius=30,
-                        # command= lambda: MarkCompleted(frame, treeview)
+                        command= lambda: PublishTelegram(frame, treeview)
                         )
         publish_telegram_button.place(relx=0.5, rely=0.1, anchor="n")
         
@@ -748,8 +747,27 @@ class PublishEmail:
                 msg['Subject'] = self.subject
                 msg['From'] = ADMIN_EMAIL
                 msg['To'] = ",".join([email[0] for email in self.emails])
-
-                msg.attach(MIMEText(self.body, 'plain'))
+                
+                if self.socialmedia_checkbox.get() == "on":
+                    self.footer = """
+                    <a href="https://www.instagram.com/aces_dbatu"; target="_blank">
+                    <img src="https://statesborodowntown.com/wp-content/uploads/2016/01/instagram-Logo-PNG-Transparent-Background-download.png"; width="50px"; height="50px"; title="Visit us on Instagram"></a>
+                
+                    <a href="https://www.cse.dbatu.ac.in/?page_id=2458"; target="_blank">
+                    <img src="https://t2b756.n3cdn1.secureserver.net/wp-content/uploads/2022/04/SGN_04_09_2022_1649504395356.png"; width="50px"; height="50px"; title="Visit ACES now!!!"></a>"""
+                
+                    # THIS TOOK ME HOURS TO FIGURE OUT ;-;
+                    # Adds newline characters where there is line break in plain text
+                    # Replaces two newline chars ("\n\n") with two html break tags ("<br><br>")
+                    html_text = re.sub(r'\n{2,}', '<br><br>', self.body)
+                    # Replaces single newline char ("\n") with single html break tag ("<br>")
+                    html_text = re.sub(r'\n', '<br>', self.body)
+                
+                    frame = f"{html_text}<br><br>{self.footer}"
+                
+                    msg.attach(MIMEText(frame, 'html'))
+                else:
+                    msg.attach(MIMEText(self.body, 'plain'))
                 
                 if self.attachment_filepath != None:
                     # Attach each file to the email
@@ -759,17 +777,17 @@ class PublishEmail:
                             attachment.add_header("Content-Disposition", "attachment", filename=os.path.basename(file_path))
                             msg.attach(attachment)
 
-            try:
-                server.send_message(msg)
-            except smtplib.SMTPException as err:
-                print("Error sending email to the recipients:", err)
-            else:
-                server.quit()
-                del msg['From']
-                del msg['Subject']
-                del msg['To']
-                self.dialogue_window.destroy()
-                messagebox.showinfo("Success", "Email broadcasted successfully!")
+                try:
+                    server.send_message(msg)
+                except smtplib.SMTPException as err:
+                    print("Error sending email to the recipients:", err)
+                else:
+                    server.quit()
+                    del msg['From']
+                    del msg['Subject']
+                    del msg['To']
+                    self.dialogue_window.destroy()
+                    messagebox.showinfo("Success", "Email broadcasted successfully!")
         else:
             self.dialogue_window.destroy()
             print("No email addresses found in the database!")

@@ -17,7 +17,7 @@ class AEM(customtkinter.CTk):
         self.screen_width = self.winfo_screenwidth()
         self.screen_height = self.winfo_screenheight()
         self.screen_size = (f"{int(self.screen_width * 0.8)}x{int(self.screen_height * 0.8)}")
-        print(f"[*] Screen resolution detected: {self.screen_width}x{self.screen_height}\n--- Current window size: {self.screen_size}")
+        print(f"[*] Screen resolution detected: {self.screen_width}x{self.screen_height}\n--- Current window size: {self.screen_size}\n")
         self.geometry(self.screen_size)
         self.title("Welcome to AEM - ACES Event Manager")
         self.resizable(False, False)

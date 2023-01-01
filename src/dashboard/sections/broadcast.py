@@ -498,7 +498,17 @@ class PublishEmail:
                             corner_radius=15,
                             command=lambda: self.dialogue_window.destroy()
                             )
-            cancel_button.place(relx=0.7, rely=0.55, anchor="n") 
+            cancel_button.place(relx=0.7, rely=0.55, anchor="n")
+            
+            self.note_label = customtkinter.CTkLabel(
+                            self.dialogue_window,
+                            text="Note: Do not close this window until the email is sent.",
+                            font=customtkinter.CTkFont(size=16, slant="roman"),
+                            width=50,
+                            height=25,
+                            corner_radius=0
+                            )
+            self.note_label.place(relx=0.5, rely=0.8, anchor="n")
         
     def test_publish(self):
         subject = self.subject_entry.get()
@@ -583,7 +593,35 @@ class PublishEmail:
                             corner_radius=10,
                             )
             self.subject_entry.place(relx=0.5, rely=0.38, anchor="n")
+            
+            self.broadcast_label = customtkinter.CTkLabel(
+                            self.dialogue_window,
+                            text="Broadcast to:",
+                            font=customtkinter.CTkFont(size=20, slant="roman"),
+                            width=50,
+                            height=25,
+                            corner_radius=0
+                            )
+            self.broadcast_label.place(relx=0.24, rely=0.55, anchor="n")
+
+            self.broadcast_to_users = customtkinter.CTkCheckBox(
+                                    self.dialogue_window, 
+                                    text="All Users",
+                                    font=customtkinter.CTkFont(size=18), 
+                                    onvalue="on", 
+                                    offvalue="off"
+                                    )
+            self.broadcast_to_users.place(relx=0.45, rely=0.55, anchor="n")
         
+            self.broadcast_to_admins = customtkinter.CTkCheckBox(
+                                    self.dialogue_window, 
+                                    text="All Admins",
+                                    font=customtkinter.CTkFont(size=16), 
+                                    onvalue="on", 
+                                    offvalue="off"
+                                    )
+            self.broadcast_to_admins.place(relx=0.65, rely=0.55, anchor="n")
+            
             xtest_publish_button = customtkinter.CTkButton(
                             self.dialogue_window,
                             text="Publish",
@@ -597,7 +635,7 @@ class PublishEmail:
                             corner_radius=15,
                             command=self.publish
                             )
-            xtest_publish_button.place(relx=0.3, rely=0.55, anchor="n")
+            xtest_publish_button.place(relx=0.3, rely=0.7, anchor="n")
         
             cancel_button = customtkinter.CTkButton(
                             self.dialogue_window,
@@ -612,45 +650,92 @@ class PublishEmail:
                             corner_radius=15,
                             command=lambda: self.dialogue_window.destroy()
                             )
-            cancel_button.place(relx=0.7, rely=0.55, anchor="n") 
+            cancel_button.place(relx=0.7, rely=0.7, anchor="n")
+             
+            self.note_label = customtkinter.CTkLabel(
+                            self.dialogue_window,
+                            text="Note: Do not close this window until the email is sent.",
+                            font=customtkinter.CTkFont(size=16, slant="roman"),
+                            width=50,
+                            height=25,
+                            corner_radius=0
+                            )
+            self.note_label.place(relx=0.5, rely=0.9, anchor="n")
+            
             
     def publish(self):
-        subject = self.subject_entry.get()
-        if len(subject) == 0:
+        self.subject = self.subject_entry.get()
+        if len(self.subject) == 0:
+            self.dialogue_window.destroy()
             messagebox.showerror("Error", "Subject is empty!")
+            self.prompt_publish()
             return
         
+        checked_users = self.broadcast_to_users.get()
+        checked_admins = self.broadcast_to_admins.get()
+        
+        query = "SELECT email FROM users WHERE role = %s"
         try:
-            cursor.execute("""SELECT email FROM users;""")
-            emails = cursor.fetchall()
-            if not emails:
-                messagebox.showerror("Error", "No email addresses found in the database!")
-                print("[x] No email addresses found in the database.")
+            if checked_users == "on" and checked_admins == "on":
+                print("[*] Sending email to both roles...\n")
+                # Send email to both roles
+                cursor.execute(query, ("ADMIN",))
+                emails_admin = cursor.fetchall()
+                
+                cursor.execute(query, ("USER",))
+                emails_user = cursor.fetchall()
+                
+                self.emails = emails_admin + emails_user
+            
+            elif checked_users == "on" and checked_admins == "off":
+                print("[*] Sending email to users only...\n")
+                # Send email to users only
+                cursor.execute(query, ("USER",))
+                self.emails = cursor.fetchall()
+            
+            elif checked_users == "off" and checked_admins == "on":
+                print("[*] Sending email to admins only...\n")
+                # Send email to admins only
+                cursor.execute(query, ("ADMIN",))
+                self.emails = cursor.fetchall()
+                
+            else:
+                self.dialogue_window.destroy()
+                messagebox.showerror("Error", "Please select at least one role to broadcast to!")
+                self.prompt_publish()
+                if self.subject:
+                    self.subject_entry.insert(0, self.subject)
+                    
         except mysql.connector.Error as err:
             print("Error fetching email addresses from the database:", err)
+            self.dialogue_window.destroy()
+            messagebox.showerror("Error", "Error fetching email addresses from the database!")
         
-        if emails:
+        if self.emails: 
             try:
                 server = smtplib.SMTP(EMAIL_SERVER_HOST, EMAIL_SERVER_PORT)
                 server.starttls()
                 server.login(ADMIN_EMAIL, ADMIN_EMAIL_PASS)
             except smtplib.SMTPException as err:
                 print("Error connecting to the SMTP server:", err)
-
-            msg = MIMEMultipart()
-            msg['Subject'] = subject
-            msg['From'] = ADMIN_EMAIL
-            msg['To'] = ",".join([email[0] for email in emails])
-
-            msg.attach(MIMEText(self.body, 'plain'))
+                self.dialogue_window.destroy()
+                messagebox.showerror("Error", "Error connecting to the SMTP server!")
                 
-            if self.attachment_filepath != None:
-                # Attach each file to the email
-                for file_path in self.attachment_filepath:
-                    with open(file_path, "rb") as f:
-                        attachment = MIMEApplication(f.read(), _subtype="octet-stream")
-                        attachment.add_header("Content-Disposition", "attachment", filename=os.path.basename(file_path))
-                        msg.attach(attachment)
+            else:
+                msg = MIMEMultipart()
+                msg['Subject'] = self.subject
+                msg['From'] = ADMIN_EMAIL
+                msg['To'] = ",".join([email[0] for email in self.emails])
+
+                msg.attach(MIMEText(self.body, 'plain'))
+                
+                if self.attachment_filepath != None:
+                    # Attach each file to the email
+                    for file_path in self.attachment_filepath:
+                        with open(file_path, "rb") as f:
+                            attachment = MIMEApplication(f.read(), _subtype="octet-stream")
+                            attachment.add_header("Content-Disposition", "attachment", filename=os.path.basename(file_path))
+                            msg.attach(attachment)
 
             try:
                 server.send_message(msg)
@@ -663,3 +748,7 @@ class PublishEmail:
                 del msg['To']
                 self.dialogue_window.destroy()
                 messagebox.showinfo("Success", "Email broadcasted successfully!")
+        else:
+            self.dialogue_window.destroy()
+            print("No email addresses found in the database!")
+            messagebox.showerror("Error", "No email addresses found in the database!")

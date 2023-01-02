@@ -4,3 +4,4 @@ openpyxl
 python-dotenv
 tkcalendar
 telepot
+pywhatkit

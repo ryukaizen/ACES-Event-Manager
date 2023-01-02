@@ -493,7 +493,7 @@ class AEM(customtkinter.CTk):
         f.write("2130331245503")
         f.close()
         AdminDashboard(self)  
-        
-if __name__ == "__main__":
-    aem = AEM()
+       
+if __name__ == "__main__":  
+    aem = AEM()  
     aem.mainloop()

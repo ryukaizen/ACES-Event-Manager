@@ -158,7 +158,7 @@ class AEM(customtkinter.CTk):
                         width=120, 
                         height=42, 
                         corner_radius=10, 
-                        command=lambda: [widget.destroy() for widget in self.winfo_children()] + [GuestDashboard(self)]
+                        command=lambda: GuestDashboard(self)
                         )
         self.guest_button.place(x=210, y=260)   
         
@@ -390,8 +390,6 @@ class AEM(customtkinter.CTk):
             else:
                 if result:
                     self.after_login(username)
-                elif username == "test" and password == "test":
-                    self.test_login()    
                 else:
                     messagebox.showerror("Login Failed", "Invalid username or password!")
                     print("[x] Login Failed. Invalid username or password.")
@@ -475,24 +473,28 @@ class AEM(customtkinter.CTk):
             role = cursor.fetchone()[0]
             if role == "ADMIN":
                 # Temporarily store username for later use
-                f = open('src/dashboard/sections/session.txt', 'w')
+                f = open('src/dashboard/adminsections/session.txt', 'w')
                 f.write(username)
                 f.close()
                 AdminDashboard(self)
             else:
+                # Temporarily store username for later use
+                f = open('src/dashboard/usersections/session.txt', 'w')
+                f.write(username)
+                f.close()
                 UserDashboard(self)
             
     # FUNCTION FOR QUICK LOGIN DURING TESTING, REMOVE LATER
-    def test_login(self):
-        messagebox.showinfo("Login Successful", "Welcome, TEST")
-        print("\n[*] Login Successful. TEST LOGIN.")
-        for widget in self.winfo_children():
-            widget.destroy()
-        # Temporarily store username for later use
-        f = open('src/dashboard/sections/session.txt', 'w')
-        f.write("2130331245503")
-        f.close()
-        AdminDashboard(self)  
+    # def test_login(self):
+    #     messagebox.showinfo("Login Successful", "Welcome, TEST")
+    #     print("\n[*] Login Successful. TEST LOGIN.")
+    #     for widget in self.winfo_children():
+    #         widget.destroy()
+    #     # Temporarily store username for later use
+    #     f = open('src/dashboard/usersections/session.txt', 'w')
+    #     f.write("2130331245503")
+    #     f.close()
+    #     UserDashboard(self)  
        
 if __name__ == "__main__":  
     aem = AEM()  

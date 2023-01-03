@@ -4,9 +4,11 @@ import subprocess
 from tkinter import messagebox
 from PIL import Image
 from ..database.db_connect import cursor
-from .sections.events import EventSection
-from .sections.broadcast import BroadcastSection
-from .sections.users import UsersSection
+from .adminsections.events import EventSection
+from .adminsections.broadcast import BroadcastSection
+from .adminsections.users import UsersSection
+from .adminsections.committee import ComSection
+
 
 customtkinter.set_appearance_mode("light") 
 customtkinter.set_default_color_theme("dark-blue")
@@ -39,7 +41,7 @@ class AdminDashboard:
                             text=f"Welcome", 
                             font=customtkinter.CTkFont(size=16)
                             )
-        f = open('src/dashboard/sections/session.txt', 'r')
+        f = open('src/dashboard/adminsections/session.txt', 'r')
         username = f.read()
         f.close()
         try:
@@ -76,7 +78,7 @@ class AdminDashboard:
                                 text="", 
                                 image=aces_logo
                                 )
-        aces_logo_frame_label.place(relx=0.053, rely=0.03, anchor="nw")
+        aces_logo_frame_label.place(relx=0.07, rely=0.03, anchor="nw")
 
         dbatu_logo = customtkinter.CTkImage(
                     dark_image=Image.open("assets/images/BATU_logo.png"), 
@@ -109,7 +111,7 @@ class AdminDashboard:
                                 unselected_hover_color="#FF8C00",
                                 fg_color=("#EDF6FA", "#1B1B24"),
                                 bg_color=("#EDF6FA", "#1B1B24"),
-                                values=["Events", "Broadcast", "Committee", "Users", "Options"],
+                                values=["Events", "Broadcast", "Committee", "Users"],
                                 command=self.section_choice,
                                 corner_radius=15,
                                 )
@@ -146,8 +148,8 @@ class AdminDashboard:
             EventSection(self.body_frame)
         elif value == "Broadcast":
             BroadcastSection(self.body_frame)
-        # elif value == "Committee":
-        #     self.committee_section()
+        elif value == "Committee":
+            ComSection(self.body_frame)
         elif value == "Users":
             UsersSection(self.body_frame)
         # elif value == "Options":

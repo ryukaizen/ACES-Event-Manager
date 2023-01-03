@@ -525,7 +525,7 @@ class PublishEmail:
             return
         
         # Fetch logged in user's username from session file
-        f = open('src/dashboard/sections/session.txt', 'r')
+        f = open('src/dashboard/adminsections/session.txt', 'r')
         username = f.read()
         f.close()
         
@@ -1599,7 +1599,7 @@ class PublishWhatsApp:
             self.note_label.place(relx=0.5, rely=0.8, anchor="n")
     
     def publish(self):
-        f = open('src/dashboard/sections/session.txt', 'r')
+        f = open('src/dashboard/adminsections/session.txt', 'r')
         username = f.read()
         f.close()
         try:

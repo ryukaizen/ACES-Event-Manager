@@ -1,11 +1,22 @@
 import customtkinter
+import smtplib
 import subprocess
-
+import os
 from tkinter import messagebox
 from PIL import Image
 from ..database.db_connect import cursor
 from .usersections.events import ViewEventSection
+from dotenv import load_dotenv
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
 # from .usersections.feedback import FeedbackSection
+load_dotenv()
+
+ADMIN_EMAIL = os.getenv('ADMIN_EMAIL')
+ADMIN_EMAIL_PASS = os.getenv('ADMIN_EMAIL_PASS')
+EMAIL_SERVER_HOST = os.getenv('EMAIL_SERVER_HOST')
+EMAIL_SERVER_PORT = os.getenv('EMAIL_SERVER_PORT') 
 
 customtkinter.set_appearance_mode("light") 
 customtkinter.set_default_color_theme("dark-blue")
@@ -44,6 +55,23 @@ class UserDashboard:
         try:
             cursor.execute("""SELECT full_name FROM users WHERE username = "{}";""".format(username))
             full_name = cursor.fetchone()[0]
+
+            cursor.execute("""SELECT email FROM users WHERE username = "{}";""".format(username))
+            Email_ID = cursor.fetchone()[0]
+
+            server = smtplib.SMTP(EMAIL_SERVER_HOST, EMAIL_SERVER_PORT)
+            server.starttls()
+            server.login(ADMIN_EMAIL, ADMIN_EMAIL_PASS)
+            
+            
+            msg = MIMEMultipart('alternative')
+            msg['Subject'] = "Telegram Channel Link!"
+            msg['From'] = ADMIN_EMAIL
+            msg['To'] = Email_ID
+            msg.attach(MIMEText("https://telegram.me/ACESDBATU/27", 'plain'))
+            server.send_message(msg)
+            server.quit()
+
         except Exception as e:
             print(e)
         else:

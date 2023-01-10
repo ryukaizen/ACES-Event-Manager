@@ -252,7 +252,8 @@ class NewEvent:
                             frame, 
                             year=today.year, 
                             month=today.month, 
-                            day=today.day
+                            day=today.day,
+                            date_pattern='dd/mm/yy'
                             )
         self.event_date_calendar.place(x=740, y=190, anchor="center")
         
@@ -483,8 +484,8 @@ class NewEvent:
               
         # For future purposes (date and time is being stored as string as of now)
         # # This converts the date from string to datetime object 
-        # date_format = "%d/%m/%y"  
-        # date = datetime.strptime(self.event_date, date_format)
+        #date_format = "%d/%m/%y"  
+        #date = datetime.strptime(self.event_date, date_format)
         
         # # This converts the time from string to datetime object     
         # time_format = "%I:%M %p"
@@ -614,6 +615,7 @@ class UpdateEvent:
                             year=int(self.event_date[6:]),
                             month=int(self.event_date[3:5]), 
                             day=int(self.event_date[:2]),
+                            date_pattern='dd/mm/yy'
                             )
         self.event_date_calendar.place(x=740, y=190, anchor="center")
         
@@ -637,7 +639,7 @@ class UpdateEvent:
                             border_width=2,
                             border_color=("#1B1B24","#EDF6FA"),
                             corner_radius=15,
-                            command=self.select_date 
+                            command=self.select_date
                             )
         get_date_button.place(x=740, y=340, anchor="center")
         

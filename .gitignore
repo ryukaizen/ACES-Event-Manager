@@ -1,2 +1,4 @@
+.env
+test
 snippet.py
 __pycache__
